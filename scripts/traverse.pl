@@ -25,6 +25,7 @@ print '        |';
 print '0123456789' for (0 .. 8);
 print "0\n";
 print "Parsing |$text|. \n";
+print "Span  Start  End  Length  Text\n";
 
 if ($parser -> parse(text => \$text) == 0)
 {
@@ -44,6 +45,6 @@ if ($parser -> parse(text => \$text) == 0)
 		$text       =~ s/\s+$//;
 		$indent     = $node -> depth - 1;
 
-		print "Span: $span. ", "\t" x $indent, "$text. Start: $$attributes{start}. End: $$attributes{end}. Length: $$attributes{length}. \n" if (length($text) );
+		print sprintf("%4d  %5d  %3d  %6d  %-s\n", $span, $$attributes{start}, $$attributes{end}, $$attributes{length}, "\t" x $indent . $text) if (length($text) );
 	}
 }
