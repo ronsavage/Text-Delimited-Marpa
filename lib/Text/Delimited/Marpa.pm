@@ -311,28 +311,6 @@ sub _add_daughter
 
 # ------------------------------------------------
 
-sub _dump_stack
-{
-	my($self, $heading) = @_;
-	my($stack) = $self -> delimiter_stack;
-
-	print "$heading: \n";
-
-	my($item);
-
-	for (my $i = 0; $i <= $#$stack; $i++)
-	{
-		$item = $$stack[$i];
-
-		print "i: $i. Lexeme: $$item{lexeme}. Frequency: $$item{frequency}. Offset: $$item{offset}. \n";
-	}
-
-	print '-' x 50, "\n";
-
-} # End of _dump_stack.
-
-# ------------------------------------------------
-
 sub next_few_chars
 {
 	my($self, $stringref, $offset) = @_;
@@ -386,75 +364,7 @@ sub parse
 	{
 		if (defined (my $value = $self -> _process) )
 		{
-			# We scan the stack, looking for identical frequencies. The first will be the
-			# open delimiter, and the second will be the close delimiter.
-
-			my($delimiter_action)   = $self -> delimiter_action;
-			my($matching_delimiter) = $self -> matching_delimiter;
-			my($stack)              = $self -> delimiter_stack;
-			my($stringref)          = $self -> text;
-			my($offset)             = 0;
-			my($span_count)         = 0;
-
-			my($end_item);
-			my($j);
-			my($start_item, $span, @span);
-			my($text);
-
-			for (my $i = 0; $i <= $#$stack; $i++)
-			{
-				$start_item = $$stack[$i];
-
-				# Ignore everything but the next open delimiter.
-
-				next if ($$delimiter_action{$$start_item{lexeme} } ne 'open');
-
-				$j = $i + 1;
-
-				while ($j <= $#$stack)
-				{
-					$end_item = $$stack[$j];
-
-					$j++;
-
-					# Ignore everything but the corresponding close delimiter.
-
-					next if ($$delimiter_action{$$end_item{lexeme} } ne 'close');
-					next if ($$start_item{frequency} != $$end_item{frequency});
-
-					if ($#span < 0)
-					{
-						# First entry.
-					}
-					elsif ($$start_item{offset} <= $span[$#span])
-					{
-						# This start delimiter is within the span of the current delimiter pair,
-						# so this span must be a child of the previous span.
-
-						$self -> _push_node_stack;
-					}
-					else
-					{
-						# This start delimiter is after the span of the current delimiter pair,
-						# so it's a new span, and is a sibling of the previous (just-closed) span.
-
-						pop @span;
-
-						# We only pop the node stack if it hash anything besides the root in it.
-
-						$self -> node_stack -> pop if ($self -> node_stack -> length > 1);
-					}
-
-					$span = $$end_item{offset} - $$start_item{offset} + 1;
-					$text = substr($$stringref, $$start_item{offset}, $span);
-
-					$self -> _add_daughter('span', {end => $$end_item{offset}, length => $span, start => $$start_item{offset}, text => $text});
-
-					push @span, $$end_item{offset};
-
-					last;
-				}
-			}
+			$self -> _post_process;
 		}
 		else
 		{
@@ -536,20 +446,18 @@ sub _process
 
 		if ($event_name eq 'close_delim')
 		{
+			push @$delimiter_stack,
+				{
+					event_name => $event_name,
+					frequency  => $$delimiter_frequency{$lexeme},
+					lexeme     => $lexeme,
+					offset     => $start - 1, # Do not use length($lexeme)!
+				};
+
 			$$delimiter_frequency{$lexeme}--;
 
 			$self -> delimiter_frequency($delimiter_frequency);
-
-			push @$delimiter_stack,
-				{
-					frequency => $$delimiter_frequency{$lexeme},
-					lexeme    => $lexeme,
-					offset    => $start - 1, # Do not use length($lexeme)!
-				};
-
 			$self -> delimiter_stack($delimiter_stack);
-
-			$delimiter_frequency--;
 		}
 		elsif ($event_name eq 'open_delim')
 		{
@@ -557,9 +465,10 @@ sub _process
 
 			push @$delimiter_stack,
 				{
-					frequency => $$delimiter_frequency{$$matching_delimiter{$lexeme} },
-					lexeme    => $lexeme,
-					offset    => $start + length($lexeme),
+					event_name => $event_name,
+					frequency  => $$delimiter_frequency{$$matching_delimiter{$lexeme} },
+					lexeme     => $lexeme,
+					offset     => $start + length($lexeme),
 				};
 
 			$self -> delimiter_frequency($delimiter_frequency);
@@ -646,6 +555,81 @@ sub _process
 	return $self -> recce -> value;
 
 } # End of _process.
+
+# ------------------------------------------------
+
+sub _post_process
+{
+	my($self) = @_;
+
+	# We scan the stack, looking for (open, close) delimiter events.
+
+	my($stack)      = $self -> delimiter_stack;
+	my($stringref)  = $self -> text;
+	my($offset)     = 0;
+	my($span_count) = 0;
+
+	my($end_item);
+	my($j);
+	my($start_item, $span, @span);
+	my($text);
+
+	for (my $i = 0; $i <= $#$stack; $i++)
+	{
+		$start_item = $$stack[$i];
+
+		# Ignore everything but the next open delimiter event.
+
+		next if ($$start_item{event_name} ne 'open_delim');
+
+		$j = $i + 1;
+
+		while ($j <= $#$stack)
+		{
+			$end_item = $$stack[$j];
+
+			$j++;
+
+			# Ignore everything but the corresponding close delimiter event.
+
+			next if ($$end_item{event_name} ne 'close_delim');
+			next if ($$start_item{frequency} != $$end_item{frequency});
+
+			if ($#span < 0)
+			{
+				# First entry.
+			}
+			elsif ($$start_item{offset} <= $span[$#span])
+			{
+				# This start delimiter is within the span of the current delimiter pair,
+				# so this span must be a child of the previous span.
+
+				$self -> _push_node_stack;
+			}
+			else
+			{
+				# This start delimiter is after the span of the current delimiter pair,
+				# so it's a new span, and is a sibling of the previous (just-closed) span.
+
+				pop @span;
+
+				# We only pop the node stack if it hash anything besides the root in it.
+
+				$self -> node_stack -> pop if ($self -> node_stack -> length > 1);
+			}
+
+			$span = $$end_item{offset} - $$start_item{offset} + 1;
+			$text = substr($$stringref, $$start_item{offset}, $span);
+
+			$self -> _add_daughter('span', {end => $$end_item{offset}, length => $span, start => $$start_item{offset}, text => $text});
+
+			push @span, $$end_item{offset};
+
+			last;
+		}
+	}
+
+} # End of _post_process.
 
 # ------------------------------------------------
 
