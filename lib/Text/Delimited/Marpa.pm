@@ -1573,7 +1573,7 @@ My homepage: L<http://savage.net.au/>.
 
 =head1 Copyright
 
-Australian copyright (c) 2014, Ron Savage.
+Australian copyright (c) 2015, Ron Savage.
 
 	All Programs of mine are 'OSI Certified Open Source Software';
 	you can redistribute them and/or modify them under the terms of
