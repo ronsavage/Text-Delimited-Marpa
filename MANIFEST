@@ -20,8 +20,6 @@ t/brackets.t
 t/colons.t
 t/double.quotes.t
 t/escapes.t
-t/html.t
-t/multiple.quotes.t
 t/non.default.escapes.t
 t/parentheses.t
 t/percents.t
