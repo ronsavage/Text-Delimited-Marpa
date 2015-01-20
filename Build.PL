@@ -52,6 +52,7 @@ $class -> new
 		'Marpa::R2'       => 2.096000,
 		'Moo'             => 1.006000,
 		'open'            => 0,
+		'Set::Array'      => 0.30,
 		'strict'          => 0,
 		'Tree'            => 1.06,
 		'Try::Tiny'       => 0.09,
