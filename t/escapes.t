@@ -15,20 +15,15 @@ use Text::Delimited::Marpa ':constants';
 my($count)  = 0;
 my($parser) = Text::Delimited::Marpa -> new
 (
-	open    => ['<', '{', '[', '(', '"', "'", '<:'],
-	close   => ['>', '}', ']', ')', '"', "'", ':>'],
-	options => nesting_is_fatal,
+	open    => '<:',
+	close   => ':>',
+	options => mismatch_is_fatal,
 );
 my(@text) =
 (
-	q|Escaped opening delimiters\: \<, \{, \[, \(, \" and \'.|,
-	q|Escaped closing delimiters\: \>, \}, \], \), \" and \'.|,
+	q|Escaped opening delimiters\: \<.|,
+	q|Escaped closing delimiters\: \:.|,
 	q|a|,
-	q|{\{a\}}|,
-	q|[\[a\]]|,
-	q|a {b} c \{\}|,
-	q|"\"a\"" [b] c|,
-	q|a {b \{c \"\"\"\} d} e|,
 	q|Escaping permits nested but non-fatal delimiters\: <: $string \<\: $string \:\> :>|,
 	q|I said "I sang 'Δ Lady'" [\"Contains UTF8\"]|,
 );

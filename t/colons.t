@@ -12,9 +12,9 @@ use Text::Delimited::Marpa ':constants';
 my($count)  = 0;
 my($parser) = Text::Delimited::Marpa -> new
 (
-	open    => ['<:'],
-	close   => [':>'],
-	options => nesting_is_fatal,
+	open    => '<:',
+	close   => ':>',
+	options => mismatch_is_fatal,
 );
 my(@text) =
 (
@@ -22,7 +22,7 @@ my(@text) =
 	q|a|,
 	q|<: a :>|,
 	q|a {b <: c :> d} e|,
-	q|a <: b <: c :> d :> e|, # nesting_is_fatal triggers an error here.
+	q|a <: b <: c :> d :> e <:>|,
 );
 
 my($result);

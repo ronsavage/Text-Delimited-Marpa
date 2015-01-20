@@ -5,15 +5,16 @@ use warnings;
 
 use Test::More;
 
-use Text::Delimited::Marpa;
+use Text::Delimited::Marpa ':constants';
 
 # -----------
 
 my($count)  = 0;
 my($parser) = Text::Delimited::Marpa -> new
 (
-	open  => ['['],
-	close => [']'],
+	open    => '[',
+	close   => ']',
+	options => mismatch_is_fatal,
 );
 my(@text) =
 (

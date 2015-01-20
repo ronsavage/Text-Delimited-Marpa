@@ -12,9 +12,9 @@ use Text::Delimited::Marpa ':constants';
 my($count)  = 0;
 my($parser) = Text::Delimited::Marpa -> new
 (
-	open    => ['<'],
-	close   => ['>'],
-	options => overlap_is_fatal, # No-op, because '<' matches '>'! The 'b' and '/i' are irrelevant.
+	open    => '<',
+	close   => '>',
+	options => mismatch_is_fatal,
 );
 my(@text) =
 (

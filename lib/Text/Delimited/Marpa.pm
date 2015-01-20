@@ -53,6 +53,14 @@ has delimiter_action =>
 	required => 0,
 );
 
+has delimiter_frequency =>
+(
+	default  => sub{return {} },
+	is       => 'rw',
+	isa      => HashRef,
+	required => 0,
+);
+
 has delimiter_stack =>
 (
 	default  => sub{return []},
@@ -472,17 +480,16 @@ sub parse
 
 sub _process
 {
-	my($self)                = @_;
-	my($stringref)           = $self -> text || \''; # Allow for undef. Use ' in comment for UltraEdit.
-	my($pos)                 = $self -> pos;
-	my($first_pos)           = $pos;
-	my($total_length)        = length($$stringref);
-	my($length)              = $self -> length || $total_length;
-	my($text)                = '';
-	my($format)              = "%-20s    %5s    %5s    %5s    %-20s    %-20s\n";
-	my($last_event)          = '';
-	my($delimiter_frequency) = 0;
-	my($matching_delimiter)  = $self -> matching_delimiter;
+	my($self)               = @_;
+	my($stringref)          = $self -> text || \''; # Allow for undef. Use ' in comment for UltraEdit.
+	my($pos)                = $self -> pos;
+	my($first_pos)          = $pos;
+	my($total_length)       = length($$stringref);
+	my($length)             = $self -> length || $total_length;
+	my($text)               = '';
+	my($format)             = "%-20s    %5s    %5s    %5s    %-20s    %-20s\n";
+	my($last_event)         = '';
+	my($matching_delimiter) = $self -> matching_delimiter;
 
 	if ($self -> options & print_debugs)
 	{
@@ -490,7 +497,7 @@ sub _process
 		print sprintf($format, 'Event', 'Start', 'Span', 'Pos', 'Lexeme', 'Comment');
 	}
 
-	my($delimiter_stack);
+	my($delimiter_frequency, $delimiter_stack);
 	my($event_name);
 	my($lexeme);
 	my($message);
@@ -509,6 +516,7 @@ sub _process
 		$pos = $self -> recce -> resume($pos)
 	)
 	{
+		$delimiter_frequency       = $self -> delimiter_frequency;
 		$delimiter_stack           = $self -> delimiter_stack;
 		($start, $span)            = $self -> recce -> pause_span;
 		($event_name, $span, $pos) = $self -> _validate_event($stringref, $start, $span, $pos, $delimiter_frequency);
@@ -528,9 +536,13 @@ sub _process
 
 		if ($event_name eq 'close_delim')
 		{
+			$$delimiter_frequency{$lexeme}--;
+
+			$self -> delimiter_frequency($delimiter_frequency);
+
 			push @$delimiter_stack,
 				{
-					frequency => $delimiter_frequency,
+					frequency => $$delimiter_frequency{$lexeme},
 					lexeme    => $lexeme,
 					offset    => $start - 1, # Do not use length($lexeme)!
 				};
@@ -541,15 +553,16 @@ sub _process
 		}
 		elsif ($event_name eq 'open_delim')
 		{
-			$delimiter_frequency++;
+			$$delimiter_frequency{$$matching_delimiter{$lexeme} }++;
 
 			push @$delimiter_stack,
 				{
-					frequency => $delimiter_frequency,
+					frequency => $$delimiter_frequency{$$matching_delimiter{$lexeme} },
 					lexeme    => $lexeme,
 					offset    => $start + length($lexeme),
 				};
 
+			$self -> delimiter_frequency($delimiter_frequency);
 			$self -> delimiter_stack($delimiter_stack);
 		}
 		elsif ($event_name eq 'text')
@@ -559,6 +572,8 @@ sub _process
 
 		$last_event = $event_name;
     }
+
+=pod
 
 	if ($delimiter_frequency != 0)
 	{
@@ -580,7 +595,10 @@ sub _process
 			print "Warning: $message\n" if ($self -> options & print_warnings);
 		}
 	}
-	elsif ($self -> recce -> exhausted)
+
+=cut
+
+	if ($self -> recce -> exhausted)
 	{
 		$message = 'Parse exhausted';
 

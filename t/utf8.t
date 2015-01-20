@@ -15,9 +15,9 @@ use Text::Delimited::Marpa ':constants';
 my($count)  = 0;
 my($parser) = Text::Delimited::Marpa -> new
 (
-	open    => ['Δ'],
-	close   => ['δ'],
-	options => overlap_is_fatal,
+	open    => 'Δ',
+	close   => 'δ',
+	options => mismatch_is_fatal,
 );
 my(@text) =
 (
