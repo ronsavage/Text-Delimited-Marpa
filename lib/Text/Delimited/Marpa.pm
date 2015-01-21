@@ -1156,7 +1156,7 @@ This is the default value.
 
 =item o 1/-1 => "The # of open delimiters ($lexeme) does not match the # of close delimiters. Left over: $integer"
 
-If L</error_number()> returns 1, it's an error, and if it returns -1, it's a warning.
+If L</error_number()> returns 1 it's an error, and if it returns -1 it's a warning.
 
 You can set the option C<overlap_is_fatal> to make it fatal.
 
@@ -1166,26 +1166,26 @@ You can set the option C<overlap_is_fatal> to make it fatal.
 
 This message is only produced when the parse is ambiguous.
 
-If L</error_number()> returns 3, it's an error, and if it returns -3, it's a warning.
+If L</error_number()> returns 3 it's an error, and if it returns -3 it's a warning.
 
 You can set the option C<ambiguity_is_fatal> to make it fatal.
 
 =item o 4 => "Backslash is forbidden as a delimiter character"
 
-This preempts some types of sabotage.
+The check which triggers this preempts some types of sabotage.
 
-This message can never be just a warning message.
+This message always indicates an error, never a warning.
 
 =item o 5 => "Single-quotes are forbidden in multi-character delimiters"
 
 This limitation is due to the syntax of
 L<Marpa's DSL|https://metacpan.org/pod/distribution/Marpa-R2/pod/Scanless/DSL.pod>.
 
-This message can never be just a warning message.
+This message always indicates an error, never a warning.
 
 =item o 6/-6 => "Parse exhausted"
 
-If L</error_number()> returns 6, it's an error, and if it returns -6, it's a warning.
+If L</error_number()> returns 6 it's an error, and if it returns -6 it's a warning.
 
 You can set the option C<exhaustion_is_fatal> to make it fatal.
 
@@ -1194,24 +1194,24 @@ You can set the option C<exhaustion_is_fatal> to make it fatal.
 This limitation is due to the syntax of
 L<Marpa's DSL|https://metacpan.org/pod/distribution/Marpa-R2/pod/Scanless/DSL.pod>.
 
-This message can never be just a warning message.
+This message always indicates an error, never a warning.
 
 =item o 8 => "There must be at least 1 pair of open/close delimiters"
 
-This message can never be just a warning message.
+This message always indicates an error, never a warning.
 
 =item o 10 => "Unexpected event name 'xyz'"
 
 Marpa has triggered an event and it's name is not in the hash of event names derived from the BNF.
 
-This message can never be just a warning message.
+This message always indicates an error, never a warning.
 
 =item o 11 => "The code does not handle these events simultaneously: a, b, ..."
 
 The code is written to handle single events at a time, or in rare cases, 2 events at the same time.
 But here, multiple events have been triggered and the code cannot handle the given combination.
 
-This message can never be just a warning message.
+This message always indicates an error, never a warning.
 
 =back
 
@@ -1286,7 +1286,7 @@ Here, the [] indicate an optional parameter.
 
 This is the only method the user needs to call. All data can be supplied when calling L</new()>.
 
-You can of course call other methods (e.g. L</text([$stringref])> ) after calling L</new()>, but
+You can of course call other methods (e.g. L</text([$stringref])> ) after calling L</new()> but
 before calling C<parse()>.
 
 The optional hash takes these ($key => $value) pairs (exactly the same as for L</new()>):
@@ -1458,7 +1458,7 @@ See t/escapes.t.
 
 =head2 How do the length and pos parameters to new() work?
 
-The recognizer -- an object of type Marpa::R2::Scanless::R -- is called in a loop, like this:
+The recognizer - an object of type Marpa::R2::Scanless::R - is called in a loop, like this:
 
 	for
 	(
