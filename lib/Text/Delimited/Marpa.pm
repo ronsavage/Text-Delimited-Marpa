@@ -21,8 +21,6 @@ use Marpa::R2;
 
 use Moo;
 
-use Set::Array;
-
 use Tree;
 
 use Types::Standard qw/Any ArrayRef HashRef Int ScalarRef Str/;
@@ -135,9 +133,9 @@ has next_few_limit =>
 
 has node_stack =>
 (
-	default  => sub{return Set::Array -> new},
+	default  => sub{return []},
 	is       => 'rw',
-	isa      => Any,
+	isa      => ArrayRef,
 	required => 0,
 );
 
@@ -351,7 +349,7 @@ sub parse
 	$self -> uid(0);
 	$self -> tree(Tree -> new('root') );
 	$self -> tree -> meta({end => 0, length => 0, start => 0, text => '', uid => $self -> uid});
-	$self -> node_stack -> push($self -> tree -> root);
+	$self -> node_stack([$self -> tree -> root]);
 	$self -> delimiter_stack([]);
 
 	# Return 0 for success and 1 for failure.
@@ -385,6 +383,19 @@ sub parse
 	return $result;
 
 } # End of parse.
+
+# ------------------------------------------------
+
+sub _pop_node_stack
+{
+	my($self)  = @_;
+	my($stack) = $self -> node_stack;
+
+	pop @$stack;
+
+	$self -> node_stack($stack);
+
+} # End of _pop_node_stack.
 
 # ------------------------------------------------
 
@@ -571,6 +582,7 @@ sub _post_process
 
 	my($end_item);
 	my($j);
+	my($node_stack);
 	my($start_item, $span, @span);
 	my($text);
 
@@ -615,7 +627,9 @@ sub _post_process
 
 				# We only pop the node stack if it hash anything besides the root in it.
 
-				$self -> node_stack -> pop if ($self -> node_stack -> length > 1);
+				$node_stack = $self -> node_stack;
+
+				$self -> _pop_node_stack if ($#$node_stack > 0);
 			}
 
 			$span = $$end_item{offset} - $$start_item{offset} + 1;
@@ -639,9 +653,12 @@ sub _push_node_stack
 	my($stack)     = $self -> node_stack;
 	my(@daughters) = $$stack[$#$stack] -> children;
 
-	$self -> node_stack -> push($daughters[$#daughters]);
+	push @$stack, $daughters[$#daughters];
+
+	$self -> node_stack($stack);
 
 } # End of _push_node_stack.
+
 
 # ------------------------------------------------
 

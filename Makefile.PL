@@ -33,7 +33,6 @@ my(%params) =
 		'Marpa::R2'       => 2.096000,
 		'Moo'             => 1.006000,
 		'open'            => 0,
-		'Set::Array'      => 0.30,
 		'strict'          => 0,
 		'Test::More'      => 1.001006,
 #		'Test::Pod'       => 1.45, # Make it optional. See xt/author/pod.t
