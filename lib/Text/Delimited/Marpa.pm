@@ -1475,7 +1475,7 @@ See L<https://metacpan.org/pod/distribution/Marpa-R2/pod/Scanless/R.pod#read> fo
 
 =head2 Does this package support Unicode/UTF8?
 
-Yes. See t/escapes.t, t/multiple.quotes.t and t/utf8.t.
+Yes. See t/escapes.t and t/utf8.t.
 
 =head2 Does this package handler Perl delimiters (e.g. q|..|, qq|..|, qr/../, qw/../)?
 
@@ -1508,7 +1508,7 @@ Firstly, to make these constants available, you must say:
 Secondly, more detail on errors and warnings can be found at L</error_number()>.
 
 Thirdly, for usage of these option flags, see t/angle.brackets.t, t/colons.t, t/escapes.t,
-t/multiple.quotes.t, t/percents.t and scripts/tiny.pl.
+t/percents.t and scripts/tiny.pl.
 
 Now the flags themselves:
 
