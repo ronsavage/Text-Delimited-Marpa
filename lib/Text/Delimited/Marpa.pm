@@ -1044,7 +1044,7 @@ Default: None.
 
 =item o length => $integer
 
-The maxiumum length of the input string to process.
+The maximum length of the input string to process.
 
 This parameter works in conjunction with the C<pos> parameter.
 
@@ -1156,7 +1156,7 @@ This is the default value.
 
 =item o 1/-1 => "The # of open delimiters ($lexeme) does not match the # of close delimiters. Left over: $integer"
 
-If L</error_number()> returns 1, it's an error, and if it returns -1 it's a warning.
+If L</error_number()> returns 1, it's an error, and if it returns -1, it's a warning.
 
 You can set the option C<overlap_is_fatal> to make it fatal.
 
@@ -1166,7 +1166,7 @@ You can set the option C<overlap_is_fatal> to make it fatal.
 
 This message is only produced when the parse is ambiguous.
 
-If L</error_number()> returns 3, it's an error, and if it returns -3 it's a warning.
+If L</error_number()> returns 3, it's an error, and if it returns -3, it's a warning.
 
 You can set the option C<ambiguity_is_fatal> to make it fatal.
 
@@ -1185,7 +1185,7 @@ This message can never be just a warning message.
 
 =item o 6/-6 => "Parse exhausted"
 
-If L</error_number()> returns 6, it's an error, and if it returns -6 it's a warning.
+If L</error_number()> returns 6, it's an error, and if it returns -6, it's a warning.
 
 You can set the option C<exhaustion_is_fatal> to make it fatal.
 
@@ -1202,7 +1202,7 @@ This message can never be just a warning message.
 
 =item o 10 => "Unexpected event name 'xyz'"
 
-Marpa has trigged an event and it's name is not in the hash of event names derived from the BNF.
+Marpa has triggered an event and it's name is not in the hash of event names derived from the BNF.
 
 This message can never be just a warning message.
 
@@ -1286,7 +1286,7 @@ Here, the [] indicate an optional parameter.
 
 This is the only method the user needs to call. All data can be supplied when calling L</new()>.
 
-You can of course call other methods (e.g. L</text([$stringref])> ) after calling L</new()> but
+You can of course call other methods (e.g. L</text([$stringref])> ) after calling L</new()>, but
 before calling C<parse()>.
 
 The optional hash takes these ($key => $value) pairs (exactly the same as for L</new()>):
@@ -1458,7 +1458,7 @@ See t/escapes.t.
 
 =head2 How do the length and pos parameters to new() work?
 
-The recognizer - an object of type Marpa::R2::Scanless::R - is called in a loop, like this:
+The recognizer -- an object of type Marpa::R2::Scanless::R -- is called in a loop, like this:
 
 	for
 	(
@@ -1584,7 +1584,7 @@ See scripts/traverse.pl.
 The parsed output is held in a tree managed by L<Tree>.
 
 The tree always has a root node, which has nothing to do with the input data. So, even an empty
-imput string will produce a tree with 1 node. This root has an empty hashref associated with it.
+input string will produce a tree with 1 node. This root has an empty hashref associated with it.
 
 Nodes have a name and a hashref of attributes.
 
