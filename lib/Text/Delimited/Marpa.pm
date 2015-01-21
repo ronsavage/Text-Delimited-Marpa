@@ -472,6 +472,11 @@ sub _process
 		}
 		elsif ($event_name eq 'open_delim')
 		{
+			# The reason for using the matching delimiter here, is that problems arise when
+			# the caller is using a mixture of symmetrical delimiters (open, close) = (", ")
+			# and non-matching ones (open, close) = (<:, :>). The problem becomes visible in
+			# the test 'if ($$delimiter_frequency{$lexeme} != 0)' in the loop just below.
+
 			$$delimiter_frequency{$$matching_delimiter{$lexeme} }++;
 
 			push @$delimiter_stack,
@@ -493,30 +498,31 @@ sub _process
 		$last_event = $event_name;
     }
 
-=pod
+	# Cross-check the # of open/close delimiter pairs.
 
-	if ($delimiter_frequency != 0)
+	for $lexeme (keys %$delimiter_frequency)
 	{
-		$message = "The # of open delimiters does not match the # of close delimiters. Left over: $delimiter_frequency";
-
-		$self -> error_message($message);
-		$self -> error_number(1);
-
-		if ($self -> options & $self -> options & mismatch_is_fatal)
+		if ($$delimiter_frequency{$lexeme} != 0)
 		{
-			# This 'die' is inside try{}catch{}, which adds the prefix 'Error: '.
+			$message = "The # of open delimiters ($lexeme) does not match the # of close delimiters. Left over: $$delimiter_frequency{$lexeme}";
 
-			die "$message\n";
-		}
-		else
-		{
-			$self -> error_number(-1);
+			$self -> error_message($message);
+			$self -> error_number(1);
 
-			print "Warning: $message\n" if ($self -> options & print_warnings);
+			if ($self -> options & $self -> options & mismatch_is_fatal)
+			{
+				# This 'die' is inside try{}catch{}, which adds the prefix 'Error: '.
+
+				die "$message\n";
+			}
+			else
+			{
+				$self -> error_number(-1);
+
+				print "Warning: $message\n" if ($self -> options & print_warnings);
+			}
 		}
 	}
-
-=cut
 
 	if ($self -> recce -> exhausted)
 	{
@@ -1148,17 +1154,13 @@ Possible values for error_number() and error_message():
 
 This is the default value.
 
-=item o 1/-1 => "Last open delimiter: $lexeme_1. Unexpected closing delimiter: $lexeme_2"
+=item o 1/-1 => "The # of open delimiters ($lexeme) does not match the # of close delimiters. Left over: $integer"
 
 If L</error_number()> returns 1, it's an error, and if it returns -1 it's a warning.
 
 You can set the option C<overlap_is_fatal> to make it fatal.
 
-=item o 2/-2 => "Opened delimiter $lexeme again before closing previous one"
-
-If L</error_number()> returns 2, it's an error, and if it returns -2 it's a warning.
-
-You can set the option C<nesting_is_fatal> to make it fatal.
+=item o 2/-2 => (Not used)
 
 =item o 3/-3 => "Ambiguous parse. Status: $status. Terminals expected: a, b, ..."
 
@@ -1195,10 +1197,6 @@ L<Marpa's DSL|https://metacpan.org/pod/distribution/Marpa-R2/pod/Scanless/DSL.po
 This message can never be just a warning message.
 
 =item o 8 => "There must be at least 1 pair of open/close delimiters"
-
-This message can never be just a warning message.
-
-=item o 9 => "The # of open delimiters must match the # of close delimiters"
 
 This message can never be just a warning message.
 
