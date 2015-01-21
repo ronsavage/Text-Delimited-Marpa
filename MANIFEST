@@ -10,7 +10,6 @@ META.json
 META.yml
 README
 scripts/pod2html.sh
-scripts/samples.pl
 scripts/synopsis.pl
 scripts/tiny.pl
 scripts/traverse.pl

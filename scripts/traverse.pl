@@ -41,10 +41,8 @@ if ($parser -> parse(text => \$text) == 0)
 
 		$attributes = $node -> meta;
 		$text       = $$attributes{text};
-		$text       =~ s/^\s+//;
-		$text       =~ s/\s+$//;
 		$indent     = $node -> depth - 1;
 
-		print sprintf("%4d  %5d  %3d  %6d  %-s\n", $span, $$attributes{start}, $$attributes{end}, $$attributes{length}, "\t" x $indent . $text) if (length($text) );
+		print sprintf("%4d  %5d  %3d  %6d  %-s\n", $span, $$attributes{start}, $$attributes{end}, $$attributes{length}, '  ' x $indent . "|$text|") if (length($text) );
 	}
 }

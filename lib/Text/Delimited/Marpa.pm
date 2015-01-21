@@ -853,6 +853,8 @@ C<Text::Delimited::Marpa> - Extract delimited text sequences from strings
 
 =head1 Synopsis
 
+This is scripts/synopsis.pl:
+
 	#!/usr/bin/env perl
 
 	use strict;
@@ -902,9 +904,7 @@ C<Text::Delimited::Marpa> - Extract delimited text sequences from strings
 	print "\n";
 	print 'Statistics: ', join(', ', map{"$_ => $count{$_}"} sort keys %count), ". \n";
 
-See scripts/synopsis.pl.
-
-This is the printout of synopsis.pl:
+This is the output of synopsis.pl:
 
 	Parsing |Start /* One /* Two /* Three */ Four */ Five */ Finish|. pos: 0. length: 0
 	Parse result: 0 (0 is success)
@@ -915,10 +915,23 @@ This is the printout of synopsis.pl:
 
 	Statistics: fail => 0, success => 1, total => 1.
 
+See also scripts/tiny.pl and scripts/traverse.pl.
+
 =head1 Description
 
 L<Text::Delimited::Marpa> provides a L<Marpa::R2>-based parser for extracting delimited text
-sequences from strings.
+sequences from strings. The text between the delimiters is stored as nodes in a tree managed by
+L<Tree>. The delimiters, and the text outside the delimiters, is not saved in the tree.
+
+Nested strings with the same delimiters are saved as daughters of their enclosing strings' tree
+nodes. As you can see from the output just above, this nesting process is repeated as many times as
+the delimiters themselves are nested.
+
+You can ignore the nested, delimited, strings by just processing the daughters of the tree's root
+node.
+
+This module is a companion to L<Text::Balanced::Marpa>. The differences are discussed in the L</FAQ>
+below.
 
 See the L</FAQ> for various topics, including:
 
@@ -1280,8 +1293,6 @@ key passed to L</new()>, and over any value previously passed to the method whos
 Further, the value passed to C<parse()> is always passed to the corresponding method (i.e. whose
 name is $key), meaning any subsequent call to that method returns the value passed to C<parse()>.
 
-See scripts/samples.pl.
-
 Returns 0 for success and 1 for failure.
 
 If the value is 1, you should call L</error_number()> to find out what happened.
@@ -1313,6 +1324,103 @@ Obviously, it only makes sense to call C<tree()> after calling C<parse()>.
 See scripts/traverse.pl for sample code which processes this tree's nodes.
 
 =head1 FAQ
+
+=head2 What are the differences between Text::Balanced::Marpa and Text::Delimited::Marpa?
+
+I think this is shown most clearly by getting the 2 modules to process the same string. So,
+using this as input:
+
+	'a <:b <:c:> d:> e <:f <: g <:h:> i:> j:> k'
+
+Output from Text::Balanced::Marpa's scripts/tiny.pl:
+
+	(#   2) |          1         2         3         4         5         6         7         8         9
+	        |0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+	Parsing |Skip me ->a <:b <:c:> d:> e <:f <: g <:h:> i:> j:> k|. pos: 10. length: 42
+	Parse result: 0 (0 is success)
+	root. Attributes: {text => "", uid => "0"}
+	    |--- text. Attributes: {text => "a ", uid => "1"}
+	    |--- open. Attributes: {text => "<:", uid => "2"}
+	    |    |--- text. Attributes: {text => "b ", uid => "3"}
+	    |    |--- open. Attributes: {text => "<:", uid => "4"}
+	    |    |    |--- text. Attributes: {text => "c", uid => "5"}
+	    |    |--- close. Attributes: {text => ":>", uid => "6"}
+	    |    |--- text. Attributes: {text => " d", uid => "7"}
+	    |--- close. Attributes: {text => ":>", uid => "8"}
+	    |--- text. Attributes: {text => " e ", uid => "9"}
+	    |--- open. Attributes: {text => "<:", uid => "10"}
+	    |    |--- text. Attributes: {text => "f ", uid => "11"}
+	    |    |--- open. Attributes: {text => "<:", uid => "12"}
+	    |    |    |--- text. Attributes: {text => " g ", uid => "13"}
+	    |    |    |--- open. Attributes: {text => "<:", uid => "14"}
+	    |    |    |    |--- text. Attributes: {text => "h", uid => "15"}
+	    |    |    |--- close. Attributes: {text => ":>", uid => "16"}
+	    |    |    |--- text. Attributes: {text => " i", uid => "17"}
+	    |    |--- close. Attributes: {text => ":>", uid => "18"}
+	    |    |--- text. Attributes: {text => " j", uid => "19"}
+	    |--- close. Attributes: {text => ":>", uid => "20"}
+	    |--- text. Attributes: {text => " k", uid => "21"}
+
+Output from Text::Delimited::Marpa's scripts/tiny.pl:
+
+	(#   2) |          1         2         3         4         5         6         7         8         9
+	        |0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+	Parsing |Skip me ->a <:b <:c:> d:> e <:f <: g <:h:> i:> j:> k|. pos: 10. length: 42
+	Parse result: 0 (0 is success)
+	root. Attributes: {end => "0", length => "0", start => "0", text => "", uid => "0"}
+	    |--- span. Attributes: {end => "22", length => "9", start => "14", text => "b <:c:> d", uid => "1"}
+	    |    |--- span. Attributes: {end => "18", length => "1", start => "18", text => "c", uid => "2"}
+	    |--- span. Attributes: {end => "47", length => "18", start => "30", text => "f <: g <:h:> i:> j", uid => "3"}
+	         |--- span. Attributes: {end => "43", length => "10", start => "34", text => " g <:h:> i", uid => "4"}
+	              |--- span. Attributes: {end => "39", length => "1", start => "39", text => "h", uid => "5"}
+
+Another example, using the same input string, but manually processing the tree nodes.
+Parent-daughter relationships are here represented by indentation.
+
+Output from Text::Balanced::Marpa's scripts/traverse.pl:
+
+	        |          1         2         3         4         5
+	        |012345678901234567890123456789012345678901234567890
+	Parsing |a <:b <:c:> d:> e <:f <: g <:h:> i:> j:> k|.
+	Span  Text
+	   1  |a |
+	   2  |<:|
+	   3    |b |
+	   4    |<:|
+	   5      |c|
+	   6    |:>|
+	   7    | d|
+	   8  |:>|
+	   9  | e |
+	  10  |<:|
+	  11    |f |
+	  12    |<:|
+	  13      | g |
+	  14      |<:|
+	  15        |h|
+	  16      |:>|
+	  17      | i|
+	  18    |:>|
+	  19    | j|
+	  20  |:>|
+	  21  | k|
+
+Output from Text::Delimited::Marpa's scripts/traverse.pl:
+
+	        |          1         2         3         4         5
+	        |012345678901234567890123456789012345678901234567890
+	Parsing |a <:b <:c:> d:> e <:f <: g <:h:> i:> j:> k|.
+	Span  Start  End  Length  Text
+	   1      4   12       9  |b <:c:> d|
+	   2      8    8       1    |c|
+	   3     20   37      18  |f <: g <:h:> i:> j|
+	   4     24   33      10    | g <:h:> i|
+	   5     29   29       1      |h|
+
+=head2 How do I ignore embedded strings which have the same delimiters as their containing strings?
+
+You can ignore the nested, delimited, strings by just processing the daughters of the tree's root
+node.
 
 =head2 Where are the error messages and numbers described?
 
@@ -1371,12 +1479,10 @@ a lot of things would have to be re-initialized to give the code any hope of wor
 
 =head2 What is the format of the 'open' and 'close' parameters to new()?
 
-Each of these parameters takes a string as a value.
+Each of these parameters takes a string as a value, and these are used as the opening and closing
+delimiter pair.
 
-It is possible to use a delimiter which is part of another delimiter.
-
-See scripts/samples.pl. It uses both '<' and '<:' as opening delimiters and their corresponding
-closing delimiters are '>' and ':>'. Neat, huh?
+See scripts/synopsis.pl and scripts/tiny.pl.
 
 =head2 What are the possible values for the 'options' parameter to new()?
 
@@ -1387,7 +1493,7 @@ Firstly, to make these constants available, you must say:
 Secondly, more detail on errors and warnings can be found at L</error_number()>.
 
 Thirdly, for usage of these option flags, see t/angle.brackets.t, t/colons.t, t/escapes.t,
-t/multiple.quotes.t, t/percents.t and scripts/samples.pl.
+t/multiple.quotes.t, t/percents.t and scripts/tiny.pl.
 
 Now the flags themselves:
 
