@@ -44,4 +44,4 @@
 ^MYMETA.yml$
 ^MYMETA\.json$
 
-^DBIx-Text-Delimited-Marpa-.*
+^Text-Delimited-Marpa-.*
