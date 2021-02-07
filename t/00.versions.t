@@ -5,14 +5,19 @@ use warnings;
 
 # I tried 'require'-ing modules but that did not work.
 
-use Config::Tiny; # For the version #.
+use Text::Delimited::Marpa; # For the version #.
 
 use Test::More;
 
-use File::Spec;
-use File::Temp;
+use Const::Exporter;
+use Marpa::R2;
+use Moo;
 use strict;
+use Tree;
+use Try::Tiny;
+use Types::Standard;
 use utf8;
+use warnings;
 
 # ----------------------
 
@@ -20,13 +25,18 @@ pass('All external modules loaded');
 
 my(@modules) = qw
 /
-	File::Spec
-	File::Temp
+	Const::Exporter
+	Marpa::R2
+	Moo
 	strict
+	Tree
+	Try::Tiny
+	Types::Standard
 	utf8
+	warnings
 /;
 
-diag "Testing Config::Tiny V $Config::Tiny::VERSION";
+diag "Testing Text::Delimited::Marpa V $Text::Delimited::Marpa::VERSION";
 
 for my $module (@modules)
 {
